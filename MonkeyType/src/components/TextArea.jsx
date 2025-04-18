@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "../components/TextArea.css";
+import { ResultContext } from "../assets/context/ResultContext";
 
 function TextArea() {
   const [time, setTime] = useState(0);
@@ -12,7 +13,7 @@ function TextArea() {
   const [intervalId, setIntervalId] = useState(null);
   const [wpm, setWpm] = useState(0);
   const [validity, setValidity] = useState("");
-
+  const {setResults}=useContext(ResultContext)
   const meanAccuracyRef = useRef(0);
   const totalCorrectWordsRef = useRef(0);
 
@@ -38,6 +39,22 @@ function TextArea() {
       textAreaRef.current.disabled = true;
       clearInterval(intervalId);
       checkWPM();
+
+      //adding the result in the object
+     
+        
+       
+          const handleTestComplete=()=>{
+            const newArray={
+              correct: correctCount,
+              wrong: wrongCount,
+              wpm: wpm,
+              validity: validity,
+            }
+            setResults(newArray)
+          }
+        handleTestComplete()
+      
 
       if (textAreaRef.current) {
         textAreaRef.current.value = "";

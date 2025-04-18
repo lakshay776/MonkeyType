@@ -1,23 +1,20 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import './App.css'
-import TextArea from './components/TextArea'
+import ResultProvider from './assets/context/ResultPrvider'
+import Textarea from './components/TextArea'
 import Result from './components/Result'
-
-
-function App() {
+import { Route, Router, Routes } from 'react-router-dom'
+Router
+Routes
+Route
+const App = () => {
   return (
-   
-      <Router>
-        <nav>
-          <Link to="/">TEST</Link>
-          <Link to="/stats">Results</Link>
-        </nav>
-        <Routes>
-          <Route path='/' element={<TextArea />} />
-          <Route path='/stats' element={<Result />} />
-        </Routes>
-      </Router>
+    
+    
 
+
+    <ResultProvider>
+      <Textarea />
+      <Result />
+    </ResultProvider>
   )
 }
 
