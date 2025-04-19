@@ -8,8 +8,8 @@ const ResultProvider = ({ children }) => {
     wrong: 0,
     wpm: 0,
     validity: 0,
+    accuracy:0
   })
-
   return (
     <ResultContext.Provider value={{ resultData, setResultData }}>
       {children}

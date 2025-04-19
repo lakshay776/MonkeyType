@@ -8,25 +8,22 @@ function TextArea() {
   const [text, setText] = useState("");
   const textAreaRef = useRef(null);
   const resultRef = useRef(null);
-  const [correctCount, setCorrect] = useState(0);
-  const [wrongCount, setWrong] = useState(0);
+  const correctCountRef = useRef(0);
+  const wrongCountRef = useRef(0);
   const [intervalId, setIntervalId] = useState(null);
   const [wpm, setWpm] = useState(0);
   const [validity, setValidity] = useState("");
-  const {setResults}=useContext(ResultContext)
+  const Value = useContext(ResultContext);
   const meanAccuracyRef = useRef(0);
   const totalCorrectWordsRef = useRef(0);
-
+  const [accuracy,setAccuracy]=useState(0)
   const handleChange = (e) => {
     const input = e.target.value;
     const currentIndex = input.length - 1;
     const isMatch = input[currentIndex] === sampleText[currentIndex];
 
-    if (isMatch) {
-      setCorrect((prev) => prev + 1);
-    } else {
-      setWrong((prev) => prev + 1);
-    }
+    if (isMatch) correctCountRef.current += 1;
+    else wrongCountRef.current += 1;
 
     setText(input);
 
@@ -38,66 +35,36 @@ function TextArea() {
       resultRef.current.style.display = "block";
       textAreaRef.current.disabled = true;
       clearInterval(intervalId);
-      checkWPM();
 
-      //adding the result in the object
-     
-        
-       
-          const handleTestComplete=()=>{
-            const newArray={
-              correct: correctCount,
-              wrong: wrongCount,
-              wpm: wpm,
-              validity: validity,
-            }
-            setResults(newArray)
-          }
-        handleTestComplete()
-      
-
-      if (textAreaRef.current) {
-        textAreaRef.current.value = "";
-        textAreaRef.current.style.color = "black";
-      }
+      checkWPM(input); // ✅ Now handles context update inside
     }
   };
 
   const handleKeydown = (e) => {
-    if (e.key === "Backspace") {
-      e.preventDefault();
-    }
-    if (text.length === 1) {
-      startTimer();
-    }
+    if (e.key === "Backspace") e.preventDefault();
+    if (text.length === 1) startTimer();
   };
 
   const startTimer = () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-    }
-    const id = setInterval(() => {
-      setTime((prev) => prev + 1);
-    }, 1000);
+    if (intervalId) clearInterval(intervalId);
+    const id = setInterval(() => setTime((prev) => prev + 1), 1000);
     setIntervalId(id);
   };
 
   useEffect(() => {
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
+      if (intervalId) clearInterval(intervalId);
     };
   }, [intervalId]);
 
-  const checkWPM = () => {
+  async function checkWPM(inputText) {
     const sampleWords = sampleText.trim().split(/\s+/);
     let typedWords = [];
     let startIndex = 0;
 
     for (let i = 0; i < sampleWords.length; i++) {
       const wordLength = sampleWords[i].length;
-      typedWords.push(text.slice(startIndex, startIndex + wordLength));
+      typedWords.push(inputText.slice(startIndex, startIndex + wordLength));
       startIndex += wordLength + 1;
     }
 
@@ -105,9 +72,7 @@ function TextArea() {
       let correct = 0;
       const sampleWord = sampleWords[i];
       for (let j = 0; j < sampleWord.length; j++) {
-        if (sampleWord.charAt(j) === typedWord.charAt(j)) {
-          correct += 1;
-        }
+        if (sampleWord.charAt(j) === typedWord.charAt(j)) correct += 1;
       }
       const accuracy = correct / sampleWord.length;
       meanAccuracyRef.current += accuracy;
@@ -115,54 +80,93 @@ function TextArea() {
     });
 
     const meanAccuracy = meanAccuracyRef.current / sampleWords.length;
+    let testWpm = 0;
+    let testValidity = "";
 
     if (meanAccuracy >= 0.5) {
-      const calculatedWPM = totalCorrectWordsRef.current / (time / 60);
-      setWpm(calculatedWPM);
-      setValidity('valid');
-     
+      testWpm = totalCorrectWordsRef.current / (time / 60);
+      testValidity = "valid";
     } else {
-      setValidity('invalid test');
-    
+      testValidity = "invalid test";
     }
-  };
+
+    setWpm(testWpm);
+    setValidity(testValidity);
+    setAccuracy(meanAccuracy)
+    // ✅ Correctly send up-to-date data to context
+    if(testValidity!="invalid test"){
+    Value.setResultData({
+      correct: correctCountRef.current,
+      wrong: wrongCountRef.current,
+      wpm: testWpm,
+      validity: testValidity,
+      accuracy:meanAccuracy
+    });
+  }
+
+    // Optionally reset input field
+    if (textAreaRef.current) {
+      textAreaRef.current.value = "";
+      textAreaRef.current.style.color = "black";
+    }
+  }
 
   const reset = () => {
     setText("");
-    setCorrect(0);
-    setWrong(0);
+    correctCountRef.current = 0;
+    wrongCountRef.current = 0;
     setTime(0);
     setWpm(0);
     meanAccuracyRef.current = 0;
     totalCorrectWordsRef.current = 0;
-    setValidity('');
+    setValidity("");
     if (resultRef.current) resultRef.current.style.display = "none";
     if (textAreaRef.current) textAreaRef.current.disabled = false;
   };
+
   return (
-    <div className="p-4">
-      <span style={{ color: "blue" }}>{sampleText.slice(0, text.length)}</span>
-      <span style={{ color: "yellow" }}>{sampleText.slice(text.length)}</span>
-      <label className="block mb-2 text-lg font-semibold">TextArea</label>
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-zinc-900 text-white font-mono transition-all duration-300">
+      <div className="max-w-3xl w-full text-xl mb-4">
+        <span className="text-lime-400">{sampleText.slice(0, text.length)}</span>
+        <span className="text-zinc-600">{sampleText.slice(text.length)}</span>
+      </div>
+
       <textarea
         ref={textAreaRef}
-        className="w-full h-40 p-2 border rounded resize-none"
+        className="w-full max-w-3xl h-40 p-4 bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 resize-none text-white placeholder-zinc-500"
         placeholder={sampleText}
         onChange={handleChange}
         onKeyDown={handleKeydown}
         value={text}
-      ></textarea>
-      Result
+      />
+
       <div
-        className="hidden block mb-2 text-lg font-semibold w-full h-40 p-2 border rounded resize-none"
         ref={resultRef}
+        className="mt-6 hidden w-full max-w-3xl p-4 bg-zinc-800 border border-zinc-700 rounded-lg"
       >
-        correct=<span>{correctCount}</span>
-        wrong=<span>{wrongCount}</span>
-        wpm=<span>{wpm}</span>
-        validity=<span>{validity}</span>
+        <p>
+          ✅ Correct: <span className="text-lime-400">{correctCountRef.current}</span>
+        </p>
+        <p>
+          ❌ Wrong: <span className="text-red-400">{wrongCountRef.current}</span>
+        </p>
+        <p>
+          ⌨️ WPM: <span className="text-blue-400">{wpm.toFixed(2)}</span>
+        </p>
+        <p>
+          🧪 Validity: <span className="text-yellow-400">{validity}</span>
+        </p>
+        <p>
+          📌 Accuracy: <span className="text-yellow-400">{(Math.round(accuracy*100))+"%"}</span>
+        </p>
       </div>
-      <button onClick={reset}>Take another Test</button>
+
+      <button
+        onClick={reset}
+        className="mt-6 px-6 py-2 bg-lime-500 hover:bg-lime-600 text-black rounded-lg shadow-md transition-all"
+      >
+        🔁 Take Another Test
+      </button>
     </div>
   );
 }

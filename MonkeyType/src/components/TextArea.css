@@ -1,1 +1,15 @@
 @import "tailwindcss";
+/* TextArea.css */
+textarea {
+    transition: color 0.3s ease, border 0.3s ease;
+  }
+  
+  textarea:disabled {
+    opacity: 0.6;
+  }
+  
+  textarea::selection {
+    background: #84cc16;
+    color: #000;
+  }
+  

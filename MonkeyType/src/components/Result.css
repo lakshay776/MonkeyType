@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+/* Result.css */
+
+.result-container {
+    font-family: 'Fira Code', monospace;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .stat-card {
+    @apply bg-zinc-800 border border-zinc-700 p-4 rounded-lg text-lg flex justify-between items-center shadow-sm hover:shadow-md transition;
+  }
+  
+  .chart-container {
+    max-height: 400px;
+  }
+  
