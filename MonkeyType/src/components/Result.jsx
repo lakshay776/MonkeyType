@@ -24,8 +24,8 @@ ChartJS.register(
 
 const Result = () => {
   const Value = useContext(ResultContext);
-  const [chartData, setChartData] = useState({});
-
+  const [chartData1, setChartData1] = useState({});
+  const [chartData2, setChartData2] = useState({});
   useEffect(() => {
     const resultKey = "typingResults";
     const existingData = JSON.parse(localStorage.getItem(resultKey)) || {};
@@ -39,7 +39,7 @@ const Result = () => {
     const wpmData = timestamps.map(t => existingData[t].wpm);
     const accuracyData = timestamps.map(t => (existingData[t].accuracy || 0) * 100);
 
-    setChartData({
+    setChartData1({
       labels: formattedTimestamps,
       datasets: [
         {
@@ -49,7 +49,13 @@ const Result = () => {
           backgroundColor: 'rgba(34, 197, 94, 0.2)',
           fill: true,
           tension: 0.3
-        },
+        }
+      ]
+    });
+   
+    setChartData2({
+      labels: formattedTimestamps,
+      datasets: [
         {
           label: 'Accuracy (%)',
           data: accuracyData,
@@ -73,9 +79,17 @@ const Result = () => {
         <p>🎯 Accuracy: <span className="text-indigo-400">{(Value.resultData.accuracy * 100).toFixed(2)}%</span></p>
       </div>
       <h3 className="text-2xl font-semibold mb-2 text-lime-300">📈 Progress Chart</h3>
-      {chartData.labels ? (
+      {chartData1.labels ? (
         <div className="bg-zinc-800 p-4 rounded-lg shadow-lg">
-          <Line data={chartData} />
+          <Line data={chartData1} />
+        </div>
+      ) : (
+        <p className="text-zinc-400">Loading chart...</p>
+      )}
+      <br />
+      {chartData2.labels ? (
+        <div className="bg-zinc-800 p-4 rounded-lg shadow-lg">
+          <Line data={chartData2} />
         </div>
       ) : (
         <p className="text-zinc-400">Loading chart...</p>

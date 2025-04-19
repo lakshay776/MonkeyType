@@ -1,22 +1,44 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import "../components/TextArea.css";
 import { ResultContext } from "../assets/context/ResultContext";
+import axios from "axios";
 
 function TextArea() {
-  const [time, setTime] = useState(0);
-  const sampleText = "this is the sample text";
+  const [sampleText, setSampleText] = useState("Loading...");
   const [text, setText] = useState("");
+  const [time, setTime] = useState(0);
+  const [intervalId, setIntervalId] = useState(null);
+  const [wpm, setWpm] = useState(0);
+  const [validity, setValidity] = useState("");
+  const [accuracy, setAccuracy] = useState(0);
+
   const textAreaRef = useRef(null);
   const resultRef = useRef(null);
   const correctCountRef = useRef(0);
   const wrongCountRef = useRef(0);
-  const [intervalId, setIntervalId] = useState(null);
-  const [wpm, setWpm] = useState(0);
-  const [validity, setValidity] = useState("");
-  const Value = useContext(ResultContext);
   const meanAccuracyRef = useRef(0);
   const totalCorrectWordsRef = useRef(0);
-  const [accuracy,setAccuracy]=useState(0)
+
+  const Value = useContext(ResultContext);
+
+  useEffect(() => {
+    axios
+      .get("https://api.api-ninjas.com/v1/quotes", {
+        headers: {
+          "X-Api-Key": "lrpYoqboNkrztxz2IYohlQ==ivnMS0rFm5rN57m6"
+        }
+      })
+      .then((res) => {
+        if (res.data && res.data[0]?.quote) {
+          setSampleText(res.data[0].quote);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch sample text:", err);
+        setSampleText("this is the fallback sample text");
+      });
+  }, []);
+
   const handleChange = (e) => {
     const input = e.target.value;
     const currentIndex = input.length - 1;
@@ -35,8 +57,7 @@ function TextArea() {
       resultRef.current.style.display = "block";
       textAreaRef.current.disabled = true;
       clearInterval(intervalId);
-
-      checkWPM(input); // ✅ Now handles context update inside
+      checkWPM(input);
     }
   };
 
@@ -74,9 +95,9 @@ function TextArea() {
       for (let j = 0; j < sampleWord.length; j++) {
         if (sampleWord.charAt(j) === typedWord.charAt(j)) correct += 1;
       }
-      const accuracy = correct / sampleWord.length;
-      meanAccuracyRef.current += accuracy;
-      totalCorrectWordsRef.current += accuracy >= 0.5 ? 1 : 0.5;
+      const wordAccuracy = correct / sampleWord.length;
+      meanAccuracyRef.current += wordAccuracy;
+      totalCorrectWordsRef.current += wordAccuracy >= 0.5 ? 1 : 0.5;
     });
 
     const meanAccuracy = meanAccuracyRef.current / sampleWords.length;
@@ -92,19 +113,19 @@ function TextArea() {
 
     setWpm(testWpm);
     setValidity(testValidity);
-    setAccuracy(meanAccuracy)
-    // ✅ Correctly send up-to-date data to context
-    if(testValidity!="invalid test"){
-    Value.setResultData({
-      correct: correctCountRef.current,
-      wrong: wrongCountRef.current,
-      wpm: testWpm,
-      validity: testValidity,
-      accuracy:meanAccuracy
-    });
-  }
+    setAccuracy(meanAccuracy);
 
-    // Optionally reset input field
+    if (testValidity !== "invalid test" && text.length !== 0) {
+      Value.setResultData({
+        correct: correctCountRef.current,
+        wrong: wrongCountRef.current,
+        wpm: testWpm,
+        validity: testValidity,
+        accuracy: meanAccuracy,
+        hasRun: true
+      });
+    }
+
     if (textAreaRef.current) {
       textAreaRef.current.value = "";
       textAreaRef.current.style.color = "black";
@@ -120,6 +141,17 @@ function TextArea() {
     meanAccuracyRef.current = 0;
     totalCorrectWordsRef.current = 0;
     setValidity("");
+    setAccuracy(0);
+
+    Value.setResultData({
+      correct: 0,
+      wrong: 0,
+      wpm: 0,
+      validity: "",
+      accuracy: 0,
+      hasRun: false
+    });
+
     if (resultRef.current) resultRef.current.style.display = "none";
     if (textAreaRef.current) textAreaRef.current.disabled = false;
   };
@@ -157,7 +189,7 @@ function TextArea() {
           🧪 Validity: <span className="text-yellow-400">{validity}</span>
         </p>
         <p>
-          📌 Accuracy: <span className="text-yellow-400">{(Math.round(accuracy*100))+"%"}</span>
+          📌 Accuracy: <span className="text-yellow-400">{(Math.round(accuracy * 100)) + "%"}</span>
         </p>
       </div>
 
