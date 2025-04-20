@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { initializeApp } from 'firebase/app';
 import { ResultContext } from '../assets/context/ResultContext';
-import { useNavigate } from 'react-router-dom';  // Import the useNavigate hook
+import { useNavigate } from 'react-router-dom';
 import {
   getAuth,
   createUserWithEmailAndPassword,
@@ -28,30 +28,41 @@ const provider = new GoogleAuthProvider();
 
 function Auth() {
   const { setLoggedIn } = useContext(ResultContext);
+  const navigate = useNavigate();
 
-  
-
-  const navigate = useNavigate();  // Initialize the navigate function
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+
   const handleAuth = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!emailRegex.test(email)) {
+      alert('❌ Invalid email format');
+      setLoading(false);
+      return;
+    }
+
+    if (isSignUp && !passwordRegex.test(password)) {
+      alert('❌ Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isSignUp) {
         await createUserWithEmailAndPassword(auth, email, password);
-        alert('Account created!');
-        setLoggedIn(true);  // Set the login status
-        navigate('/typing-speed');  // Navigate to the typing speed page after login
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-       
-        setLoggedIn(true);  // Set the login status
-        navigate('/TextArea');  // Navigate to the typing speed page after login
       }
+
+      setLoggedIn(true);
+      navigate('/TextArea');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -64,7 +75,7 @@ function Auth() {
       const result = await signInWithPopup(auth, provider);
       alert(`Welcome ${result.user.displayName}`);
       setLoggedIn(true);
-      navigate('/TextArea');  // Navigate to the typing speed page after Google login
+      navigate('/TextArea');
     } catch (err) {
       alert(err.message);
     }
