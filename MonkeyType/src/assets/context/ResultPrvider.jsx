@@ -11,8 +11,11 @@ const ResultProvider = ({ children }) => {
     accuracy:0,
     hasRun:false
   })
+  const [cpsData,setcpsData]=useState({
+    cps:0
+  })
   return (
-    <ResultContext.Provider value={{ resultData, setResultData }}>
+    <ResultContext.Provider value={{ resultData, setResultData,cpsData,setcpsData }}>
       {children}
     </ResultContext.Provider>
   )

@@ -158,6 +158,12 @@ function TextArea() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-8 bg-zinc-900 text-white font-mono transition-all duration-300">
+
+      {/* 💡 Updated Heading */}
+      <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wide text-lime-400 mb-6 drop-shadow-lg text-center">
+        🧠 Test Your Speed
+      </h1>
+
       <div className="max-w-3xl w-full text-xl mb-4">
         <span className="text-lime-400">{sampleText.slice(0, text.length)}</span>
         <span className="text-zinc-600">{sampleText.slice(text.length)}</span>
