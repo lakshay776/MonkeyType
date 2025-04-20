@@ -16,3 +16,5 @@
 - Backend: Firebase (Authentication)
 - Routing: React Router
 - State Management: React Context API
+
+- Visit TypeX: https://monkey-type1.vercel.app/
